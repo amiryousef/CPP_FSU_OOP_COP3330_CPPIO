@@ -1,0 +1,486 @@
+From: "Saved by Windows Internet Explorer 8"
+Subject: Homework 5: I/O
+Date: Sat, 19 Nov 2011 20:17:44 -0500
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----=_NextPart_000_0003_01CCA6F8.4C41E970"
+X-MimeOLE: Produced By Microsoft MimeOLE V6.0.6002.18463
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0003_01CCA6F8.4C41E970
+Content-Type: text/html;
+	charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://www.cs.fsu.edu/~lacher/courses/COP3330/assigns/hw5.html
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>Homework 5: I/O</TITLE>
+<META content=3D"text/html; charset=3Dwindows-1252" =
+http-equiv=3DContent-Type>
+<META name=3DGENERATOR content=3D"MSHTML 8.00.6001.19154">
+<STYLE type=3Dtext/css>@import url( =
+http://www.cs.fsu.edu/~lacher/styles/RCLstyle1.css );
+</STYLE>
+</HEAD>
+<BODY aLink=3D#808080 link=3Dblack vLink=3Dblack><!--=0A=
+<center>=0A=
+<h1><font color=3D#990000>DRAFT: Open for comment in the discussion =
+forum.</font></h1>=0A=
+</center>=0A=
+-->
+<CENTER>
+<H1>Homework 5: I/O</H1></CENTER>
+<P><B>Educational Objectives:</B> After completing this assignment the =
+student=20
+should have the following knowledge, ability, and skills:</P>
+<UL>
+  <LI>Open and read text files with filenames determined at runtime=20
+  <LI>Read numerical data from text files in various formats (octal, =
+decimal,=20
+  and hexadecimal)=20
+  <LI>Open and write text files with filenames determined at runtime=20
+  <LI>Format text file output using std:: I/O manipulators=20
+  <LI>Write numerical data in various formats (octal, decimal, and =
+hexadecimal)=20
+  <LI>Create and use an I/O manipulator with zero parameters=20
+  <LI>Explain how manipulators are created, including the background =
+assumptions=20
+
+  <LI>Explain how manipulators function by detailing the actions =
+triggered by a=20
+  manipulator call </LI></UL>
+<P><STRONG>Operational Objectives:</STRONG> Create a file formatting =
+program=20
+<TT>bases.cpp</TT> as described in the code requirements and =
+specifications=20
+below.</P>
+<P><STRONG>Deliverables:</STRONG> One file <TT>bases.cpp</TT>. </P>
+<H2>I/O Manipulators</H2>
+<P>The goal for this assignment is learn about and use I/O manipulators. =
+We will=20
+use the standard I/O manipulators defined in the namespace <TT>std</TT>. =
+</P>
+<P>An I/O manipulator may seem mysterious at first, but it is really a =
+simple=20
+function. (The manipulators that take parameters are somewhat more =
+complex,=20
+requiring function objects.) Here's how it works: </P>
+<P>Various properties of I/O are controlled by "flags", which are public =
+member=20
+variables of the base class <TT>std::ios</TT> and hence inherited by =
+other=20
+classes such as <TT>std::istream</TT>, <TT>std::ostream</TT>,=20
+<TT>std::ifstream</TT>, and <TT>std::ofstream</TT>. These flag names =
+are: </P>
+<BLOCKQUOTE><PRE>boolalpha , dec , fixed , hex , internal , left , oct , =
+right , scientific ,
+showbase , showpoint , showpos , skipws , unitbuf , uppercase , =
+adjustfield ,
+basefield , floatfield
+</PRE></BLOCKQUOTE>
+<P>These names can be manipulated as if they were single bits (and in =
+most=20
+implementations they are single bits, although this is not specified by =
+the=20
+language). There are also member functions of class <TT>ios</TT> </P>
+<BLOCKQUOTE><PRE>void setf   (ios::flag F);
+void unsetf (ios::flag F);
+</PRE></BLOCKQUOTE>
+<P>that take a flag as argument and either set or unset the flag. If, =
+for=20
+example, you want to unset the flags <TT>dec</TT> and <TT>oct</TT> and =
+set the=20
+<TT>hex</TT> flag for the stream object <TT>s</TT>, you would make these =
+two=20
+calls: </P>
+<BLOCKQUOTE><PRE>s.unsetf (std::ios::dec | std::ios::oct);
+s.setf (std::ios::hex);
+</PRE></BLOCKQUOTE>
+<P>Note that the scope of the flag must be resolved =
+(<TT>std::ios::</TT>). Note=20
+also the use of bitwise OR to combine the <TT>dec</TT> and <TT>oct</TT> =
+flags=20
+into a single argument. </P>
+<P>An I/O manipulator has the following prototype pattern: </P>
+<BLOCKQUOTE><PRE>std::ios&amp; M(std::ios&amp; s); =20
+</PRE></BLOCKQUOTE>
+<P>where <TT>M</TT> is the name of the manipulator. Note that it takes a =
+stream=20
+base object by reference and then returns the same object (modified), so =
+that it=20
+makes sense to call the manipulator using the syntax </P>
+<BLOCKQUOTE><PRE>os &lt;&lt; ... &lt;&lt; M &lt;&lt; ... // manipulator =
+call syntax for an ostream os
+is &gt;&gt; ... &gt;&gt; M &gt;&gt; ... // manipulator call syntax for =
+an istream is
+</PRE></BLOCKQUOTE>
+<P>This syntax is facilitated by overloads of the input and output =
+operators=20
+something like this: </P>
+<BLOCKQUOTE><PRE>ios&amp; operator &lt;&lt; (ios&amp; s, F())
+{
+  return F();
+}
+ios&amp; operator &gt;&gt; (ios&amp; s, F())
+{
+  return F();
+}
+</PRE></BLOCKQUOTE>
+<P>These overloads are already defined in the <TT>iostream</TT> library. =
+So, the=20
+only thing left to do is actually write the manipulator function (the =
+parameter=20
+<TT>F()</TT> in the operator overloads above). Here is how to write the=20
+<TT>hex</TT> manipulator function: </P>
+<BLOCKQUOTE><PRE>std::ios&amp; hex (std::ios&amp; s)
+{
+  s.unsetf(std::ios::oct | std::ios::dec);
+  s.setf(std::ios::hex);
+  return s;
+}
+</PRE></BLOCKQUOTE>
+<P>Note the return of the incoming stream object (after its state is =
+modified by=20
+changing the flag settings). The effect of this code: </P>
+<BLOCKQUOTE><PRE>is &gt;&gt; hex;
+os &lt;&lt; hex;
+</PRE></BLOCKQUOTE>
+<P>is to set the hex flag (by calling <TT>hex(os)</TT>) and return the =
+modified=20
+stream object for further processing. For input streams, this will mean =
+that=20
+numerical input is assumed to be in hexadecimal notation. For output =
+streams,=20
+this will mean that numbers are output in hexadecimal notation. </P>
+<H2>Procedural Requirements</H2>
+<OL type=3D1>
+  <LI>
+  <P>Create and work within a separate subdirectory =
+<TT>cop3330/hw5</TT>. Review=20
+  the COP 3330 rules found in Introduction/Work Rules. </P>
+  <LI>
+  <P>Begin by copying the following files from the course directory: =
+into your=20
+  <TT>hw5</TT> directory: </P>
+  <P></P>
+  <BLOCKQUOTE><PRE>[LIB]/hw5/data?.in
+[LIB]/hw5/hw5submit.sh
+[LIB]/area51/bases_s.x
+[LIB]/area51/bases_i.x
+</PRE></BLOCKQUOTE>
+  <P>The naming of these files uses the convention that <TT>_s</TT> are =
+compiled=20
+  for Sun/Solaris and <TT>_i</TT> are compiled for Intel/Linux. Use one =
+of the=20
+  sample client executables to experiment to get an understanding of how =
+your=20
+  program should behave. </P>
+  <LI>
+  <P>Create the file <TT>bases.cpp</TT> that meets the specifications =
+required=20
+  below. </P>
+  <LI>
+  <P>Turn in the file <TT>bases.cpp</TT> using the <TT>hw5submit.sh</TT> =
+submit=20
+  script. </P>
+  <P><EM><B>Warning:</B> Submit scripts do not work on the =
+<TT>program</TT> and=20
+  <TT>linprog</TT> servers. Use <TT>shell.cs.fsu.edu</TT> to submit =
+projects. If=20
+  you do not receive the second confirmation with the contents of your =
+project,=20
+  there has been a malfunction.</EM> </P></LI></OL>
+<H2>Code Requirements and Specifications</H2>
+<OL type=3D1><!--=0A=
+<li><p>=0A=
+The program <tt>bases.cpp</tt> must use the manipulators in namespace=0A=
+<tt>fsu</tt> defined in the files <tt>iomanip</tt>.=0A=
+</p></li>=0A=
+=0A=
+<li><p>The I/O header files included by <tt>bases.cpp</tt> should be =
+exactly these:=0A=
+</p><blockquote><pre>#include &lt;fstream&gt;=0A=
+#include &lt;xiomanip.h&gt;=0A=
+</pre></blockquote><p>=0A=
+</p></li>=0A=
+-->
+  <LI>
+  <P>Do not use any "using" directives in your code.</P>
+  <LI>
+  <P>The following constants should be declared and used in =
+<TT>bases.cpp</TT>:=20
+  </P>
+  <BLOCKQUOTE><PRE>static const unsigned short
+  cwh =3D 16, // max digits of unsigned long hexadecimal
+  cwd =3D 20, // max digits of unsigned long decimal
+  cwo =3D 26, // max digits of unsigned long octal
+  cs1 =3D 4, cs2 =3D 2// col spacers
+</PRE></BLOCKQUOTE>
+  <P>Do not hard code literal values for column widths and column =
+spacers. These=20
+  constants are set up to produce tables when the integers are 64-bit =
+(eight=20
+  byte) words (the size of type <TT>unsigned long</TT>). The various =
+<TT>cw</TT>=20
+  values are the max size of a 64-bit number in the various notations. =
+The=20
+  <TT>cs</TT> values are the spacing preceeding the column. </P>
+  <LI>
+  <P>The application <TT>bases</TT> should take two file names at the =
+command=20
+  line. The first is an input file, which contains documentation, =
+instructions,=20
+  and data. The second is an output file in which a table should be =
+created=20
+  according to the input file instructions and data. </P>
+  <P>Note that there are options specifying the numerical notation for =
+input and=20
+  for the notation in two columns of output. The output file should be a =
+table=20
+  with header (giving the names of the output file and the input file) =
+and=20
+  column headers indicating the notation used in that column. The data =
+in the=20
+  table consists of one line for each number in the input file, in the =
+notation=20
+  specified by the formatting characters. See <TT>bases.x</TT> and the =
+example=20
+  input data files for clarification of this behavior. </P>
+  <LI>
+  <P>The input file is formatted as follows: </P>
+  <BLOCKQUOTE><PRE>input file format:
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+  1: file documentation lines at top of file begin with '#'
+
+  2: next string of data: (five format control characters)
+
+    format for input file
+       first character - how to interpret input numbers:
+        'o' or 'O': read in octal notation
+        'd' or 'D': read in decimal notation
+        'h' or 'H': read in hexadecimal notation
+
+    next characters format output, read in pairs
+    (two for col 1, two for col 2)
+
+      first character of pair: numerical notation
+        'd' =3D decimal
+        'D' =3D decimal
+        'h' =3D hex/lower case
+        'H' =3D hex/upper case
+        'o' =3D octal
+        'O' =3D octal
+      second character of pair: fill (affects hex and oct only)
+        'f' =3D fill hex and octal with leading zero, 64-bit
+        'n' =3D no fill for hex and octal
+
+  3: remainder of input file: unsigned long integers in notation =
+designated
+     by first format control character
+</PRE></BLOCKQUOTE>
+  <P>The program should skip the documentation, then read the five =
+formatting=20
+  characters, and then proceed to read the file data, constructing the =
+table in=20
+  the output file as it goes. (There is no need to store more than one =
+integer=20
+  at a time, just read an integer and then write the line of the output =
+file=20
+  table corresponding to that input.) </P>
+  <LI>
+  <P>The output file should begin with two lines of information giving =
+the names=20
+  of the file and the input data file. The third line should be blank, =
+and the=20
+  fourth line should have the headers for the table columns. The actual =
+table=20
+  entries should commence below, and allign correctly with, the column =
+headers.=20
+  </P>
+  <LI>
+  <P>Be sure that hex and octal numbers are output with the correct =
+number of=20
+  leading zeros in case <TT>'f'</TT>. The defined constants <TT>cwx</TT> =
+above=20
+  give the correct size needed for 64-bit numbers. </P>
+  <LI>
+  <P>When in doubt, use the distributed executables for guidance in =
+constructing=20
+  the output file. </P></LI></OL>
+<H2>Hints</H2>
+<UL>
+  <LI>
+  <P>Keep in mind: numbers inside the machine are all binary. Decimal, =
+octal,=20
+  and hexadecimal are human lexical representations that exist only =
+outside the=20
+  machine, on screen or in files. </P>
+  <LI>
+  <P>To get a number to print in 64-bit (16 digit) hex notation with =
+leading=20
+  zero fill, you need a column exactly 16 characters wide. If you need =
+more=20
+  visual space in the table, you will need an extra "column" of spaces =
+for that=20
+  purpose. </P>
+  <LI>
+  <P>The best way to skip documentation is to <TT>peek()</TT> and then=20
+  <TT>get()</TT> to end of line. It's a mistake to try to use=20
+  "<TT>getline()</TT>" in this assignment; this function is usually too =
+crude=20
+  for intricate work, and it often erroneously discards data from the =
+input=20
+  stream. You really don't need any string variables for this =
+assignment,=20
+  although they are allowed. </P>
+  <LI>
+  <P><I>Note:</I> There may be <I>no</I> lines of documentation. </P>
+  <LI>
+  <P>See the program <TT>examples/commandLineArguments.cpp</TT> to see =
+how to=20
+  handle command line arguments in C++. Compile and run this program =
+with some=20
+  command line arguments (strings), then take a look at the source code. =
+For=20
+  example: </P>
+  =
+<BLOCKQUOTE><PRE>lacher@diablo:~/3330/examples&gt;commandLineArguments.x =
+aa bbbbbb cccc
+4 command line arguments were entered.
+The data passed to function main were:
+4 =3D argc
+argv[0] =3D commandLineArguments.x
+argv[1] =3D aa
+argv[2] =3D bbbbbb
+argv[3] =3D cccc
+lacher@diablo:~/3330/examples&gt;
+</PRE></BLOCKQUOTE>
+  <P>Note that the program and the OS cooperate via the "argument =
+counter"=20
+  <TT>argc</TT> and the "argument vector" <TT>argv</TT>. <TT>argc</TT> =
+gives the=20
+  number of input strings (starting with the name of the executable =
+itself as=20
+  "zero"), and <TT>argv</TT> is an array of strings containing all of =
+these=20
+  arguments. Note that the name of the executable will always be=20
+  <TT>argv[0]</TT>, for example. </P>
+  <LI>
+  <P>Here is one sample session: </P>
+  <BLOCKQUOTE><PRE>lacher@diablo:~/3330/hw5&gt;c3330 bases
+lacher@diablo:~/3330/hw5&gt;bases.x data1.in data1.out
+lacher@diablo:~/3330/hw5&gt;
+</PRE></BLOCKQUOTE>
+  <P>Here is the input file <TT>data1.in</TT>: </P>
+  <BLOCKQUOTE><PRE># data1.in
+# read data as decimal numbers
+# convert these numbers to a table of dec, hex values
+#
+
+ddnhf
+0
+1
+10
+100
+1000
+10000
+100000
+1000000
+10000000
+100000000
+1000000000
+4294967295
+10000000000
+100000000000
+1000000000000
+10000000000000
+100000000000000
+1000000000000000
+10000000000000000
+100000000000000000
+1000000000000000000
+10000000000000000000
+18446744073709551615
+</PRE></BLOCKQUOTE>
+  <P>Here is the outputfile <TT>data1.out</TT>: </P>
+  <BLOCKQUOTE><PRE>Name of this file:       data1.out
+Name of input data file: data1.in
+
+                     dec               hex
+                       0  0000000000000000
+                       1  0000000000000001
+                      10  000000000000000a
+                     100  0000000000000064
+                    1000  00000000000003e8
+                   10000  0000000000002710
+                  100000  00000000000186a0
+                 1000000  00000000000f4240
+                10000000  0000000000989680
+               100000000  0000000005f5e100
+              1000000000  000000003b9aca00
+              4294967295  00000000ffffffff
+             10000000000  00000002540be400
+            100000000000  000000174876e800
+           1000000000000  000000e8d4a51000
+          10000000000000  000009184e72a000
+         100000000000000  00005af3107a4000
+        1000000000000000  00038d7ea4c68000
+       10000000000000000  002386f26fc10000
+      100000000000000000  016345785d8a0000
+     1000000000000000000  0de0b6b3a7640000
+    10000000000000000000  8ac7230489e80000
+    18446744073709551615  ffffffffffffffff
+</PRE></BLOCKQUOTE>
+  <P></P></LI></UL></BODY></HTML>
+
+------=_NextPart_000_0003_01CCA6F8.4C41E970
+Content-Type: text/css;
+	charset="windows-1256"
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://www.cs.fsu.edu/~lacher/styles/RCLstyle1.css
+
+PRE {
+	FONT-FAMILY: Courier New, Fixedsys; FONT-SIZE: 10pt
+}
+TT {
+	FONT-FAMILY: Courier New, Fixedsys; FONT-SIZE: 10pt
+}
+P {
+	FONT-FAMILY: Verdana, sans-serif; FONT-SIZE: 10pt
+}
+H1 {
+	FONT-FAMILY: Verdana, sans-serif; FONT-SIZE: 12pt; FONT-WEIGHT: bold
+}
+H2 {
+	FONT-FAMILY: Verdana, sans-serif; FONT-SIZE: 10pt; FONT-WEIGHT: bold
+}
+H3 {
+	FONT-FAMILY: Verdana, sans-serif; FONT-SIZE: 10pt; FONT-WEIGHT: bold
+}
+UL {
+	FONT-FAMILY: Verdana, sans-serif; FONT-SIZE: 10pt
+}
+LI {
+	FONT-FAMILY: Verdana, sans-serif; FONT-SIZE: 10pt
+}
+DL {
+	FONT-FAMILY: Verdana, sans-serif; FONT-SIZE: 10pt
+}
+DT {
+	FONT-FAMILY: Verdana, sans-serif; FONT-SIZE: 10pt
+}
+DD {
+	FONT-FAMILY: Verdana, sans-serif; FONT-SIZE: 10pt
+}
+EM {
+	FONT-STYLE: italic; FONT-FAMILY: Verdana, sans-serif; COLOR: #990000; =
+FONT-SIZE: 10pt
+}
+TD {
+	FONT-FAMILY: Verdana, sans-serif; FONT-SIZE: 10pt
+}
+
+------=_NextPart_000_0003_01CCA6F8.4C41E970--
